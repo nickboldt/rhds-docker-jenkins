@@ -6,6 +6,9 @@
 # 
 # Finally, open your Jenkins instance in a browser:
 # http://localhost:8080/
+# 
+# To browse the contents of the docker image:
+# http://www.asktomash.com/create-jenkins-docker-container-and-run-first-maven-job-in-less-than-10-minutes/
 
 FROM openjdk:8-jdk
 
@@ -81,4 +84,4 @@ COPY install-plugins.sh /usr/local/bin/install-plugins.sh
 
 # install plugins needed for this Jenkins instance
 FROM jenkins
-RUN /usr/local/bin/install-plugins.sh docker-slaves github-branch-source:1.8 workflow-aggregator
+RUN /usr/local/bin/install-plugins.sh docker-slaves github-branch-source workflow-aggregator github-pullrequest ghprb
