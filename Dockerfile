@@ -1,3 +1,12 @@
+# First, install docker for you platform: 
+# https://docs.docker.com/
+# 
+# Then run this docker image:
+# sudo docker run -p 8080:8080 -p 50000:50000 -v ${HOME}/4/jbdevstudio-docker-jenkins-home:/var/jenkins_home jenkins 
+# 
+# Finally, open your Jenkins instance in a browser:
+# http://localhost:8080/
+
 FROM openjdk:8-jdk
 
 RUN apt-get update && apt-get install -y git curl zip && rm -rf /var/lib/apt/lists/*
@@ -69,3 +78,7 @@ ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
 # from a derived Dockerfile, can use `RUN plugins.sh active.txt` to setup /usr/share/jenkins/ref/plugins from a support bundle
 COPY plugins.sh /usr/local/bin/plugins.sh
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
+
+# install plugins needed for this Jenkins instance
+FROM jenkins
+RUN /usr/local/bin/install-plugins.sh docker-slaves github-branch-source:1.8 workflow-aggregator
