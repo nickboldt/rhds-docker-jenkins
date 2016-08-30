@@ -2,17 +2,18 @@
 # https://docs.docker.com/
 # 
 # Then run this docker image:
-# sudo docker run -p 8080:8080 -p 50000:50000 -v ${HOME}/4/jbdevstudio-docker-jenkins-home:/var/jenkins_home jenkins 
+# sudo docker run -p 8080:8080 -p 50000:50000 -v ${HOME}/fedora-docker-jenkins-home:/var/jenkins_home jenkins 
 # 
 # Finally, open your Jenkins instance in a browser:
 # http://localhost:8080/
 # 
 # To browse the contents of the docker image:
 # http://www.asktomash.com/create-jenkins-docker-container-and-run-first-maven-job-in-less-than-10-minutes/
+# docker run -t -u root -i jenkins /bin/bash
 
-FROM openjdk:8-jdk
+FROM fedora:latest 
 
-RUN apt-get update && apt-get install -y git curl zip && rm -rf /var/lib/apt/lists/*
+RUN dnf update -y && dnf install git curl zip java-1.8.0-openjdk-devel mock rpm-build -y 
 
 ENV JENKINS_HOME /var/jenkins_home
 ENV JENKINS_SLAVE_AGENT_PORT 50000
