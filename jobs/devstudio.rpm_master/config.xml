@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.21.1">
+      <projectUrl>https://github.com/jbdevstudio/jbdevstudio-product/</projectUrl>
+      <displayName></displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>stream_jbt</name>
+          <description>master or 4.4.neon</description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>stream_ds</name>
+          <description>master or 10.0.neon</description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TARGET_PLATFORM_VERSION_MAX</name>
+          <description></description>
+          <defaultValue>4.60.1.Final-SNAPSHOT</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TARGET_PLATFORM_CENTRAL_MAX</name>
+          <description></description>
+          <defaultValue>4.60.1.Final-SNAPSHOT</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>skipRevisionCheckWhenPublishing</name>
+          <description>Check box to always publish new build to staging / nightly. &lt;br/&gt;
+Unchecked, this job will check previous build&apos;s revision to decide if this build needs &lt;br/&gt;
+to overwrite the previous one, or if it&apos;s in fact the same source &amp; therefore same binaries.</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.5.3">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@github.com:jbdevstudio/jbdevstudio-product.git</url>
+        <credentialsId>a5a1c4ed-e581-4e0e-bb68-921bb2e87680</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>origin/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>sources/product</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>DEVSTUDIO.RPM</authToken>
+  <triggers>
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.21.1">
+      <spec></spec>
+    </com.cloudbees.jenkins.GitHubPushTrigger>
+    <hudson.triggers.SCMTrigger>
+      <spec>H 2,10,18 * * *
+</spec>
+      <ignorePostCommitHooks>false</ignorePostCommitHooks>
+    </hudson.triggers.SCMTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># debugging
+# whoami &amp;&amp; groups `whoami` &amp;&amp; id -G `whoami` &amp;&amp; echo $USER &amp;&amp; echo $HOME &amp;&amp; echo WORKSPACE = $WORKSPACE
+
+# setup
+devstudioReleaseVersion=10.0
+JBDS=devstudio@filemgmt.jboss.org:/www_htdocs/devstudio
+RHDS=hudson@dev01.mw.lab.eng.bos.redhat.com:/qa/services/http/binaries/RHDS
+snapshotPath=https://devstudio.jboss.com/${devstudioReleaseVersion}/snapshots/builds
+tpPath=https://devstudio.jboss.com/targetplatforms
+BUILD_TIMESTAMP=$(date -u +%Y-%m-%d_%H-%M-%S)
+
+# build
+cd ${WORKSPACE}/sources/product/rpm
+./build.sh -clean -u &quot;\
+${tpPath}/jbdevstudiotarget/${TARGET_PLATFORM_VERSION_MAX}/,\
+${tpPath}/jbtcentraltarget/${TARGET_PLATFORM_CENTRAL_MAX}/,\
+${snapshotPath}/jbosstools-build-sites.aggregate.central-site_${stream_jbt}/latest/all/repo/,\
+${snapshotPath}/devstudio.product_${stream_ds}/latest/all/repo/&quot;
+cd -
+
+# publish
+# TODO: add a sha256sum check here
+curl -s -S https://raw.githubusercontent.com/jbosstools/jbosstools-build-ci/jbosstools-4.4.x/publish/rsync.sh &gt; rsync.sh
+if [[ ${skipRevisionCheckWhenPublishing} == &quot;true&quot; ]]; then
+  TARGET_PATH=${devstudioReleaseVersion}/snapshots/builds/${JOB_NAME}/${BUILD_TIMESTAMP}-B${BUILD_NUMBER}/all/
+  ./rsync.sh -DESTINATION ${RHDS} -s ${WORKSPACE}/product/rpm/yum_repo/ -t ${TARGET_PATH}
+else
+  echo &quot;Publish cancelled (nothing to do). Skip this check with skipRevisionCheckWhenPublishing=true&quot;
+  BUILD_DESCRIPTION=&quot;NOT PUBLISHED: UNCHANGED&quot;
+fi</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.17.1">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>60</timeoutMinutes>
+      </strategy>
+      <operationList>
+        <hudson.plugins.build__timeout.operations.AbortOperation/>
+      </operationList>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.8.4"/>
+  </buildWrappers>
+</project>
