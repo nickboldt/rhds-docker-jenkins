@@ -83,6 +83,8 @@ ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
 COPY plugins.sh /usr/local/bin/plugins.sh
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
 
+RUN whereis mock rpmbuild
+
 # install plugins needed for this Jenkins instance
 FROM jenkins
 RUN /usr/local/bin/install-plugins.sh docker-slaves github-branch-source workflow-aggregator github-pullrequest ghprb

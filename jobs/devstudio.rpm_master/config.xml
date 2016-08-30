@@ -4,9 +4,8 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.21.1">
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.14.0">
       <projectUrl>https://github.com/jbdevstudio/jbdevstudio-product/</projectUrl>
-      <displayName></displayName>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -40,12 +39,11 @@ to overwrite the previous one, or if it&apos;s in fact the same source &amp; the
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.5.3">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>git@github.com:jbdevstudio/jbdevstudio-product.git</url>
-        <credentialsId>a5a1c4ed-e581-4e0e-bb68-921bb2e87680</credentialsId>
+        <url>https://github.com/jbdevstudio/jbdevstudio-product.git</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
@@ -67,7 +65,7 @@ to overwrite the previous one, or if it&apos;s in fact the same source &amp; the
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <authToken>DEVSTUDIO.RPM</authToken>
   <triggers>
-    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.21.1">
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.14.0">
       <spec></spec>
     </com.cloudbees.jenkins.GitHubPushTrigger>
     <hudson.triggers.SCMTrigger>
@@ -89,6 +87,8 @@ RHDS=hudson@dev01.mw.lab.eng.bos.redhat.com:/qa/services/http/binaries/RHDS
 snapshotPath=https://devstudio.jboss.com/${devstudioReleaseVersion}/snapshots/builds
 tpPath=https://devstudio.jboss.com/targetplatforms
 BUILD_TIMESTAMP=$(date -u +%Y-%m-%d_%H-%M-%S)
+
+whereis mock rpmbuild
 
 # build
 cd ${WORKSPACE}/sources/product/rpm
